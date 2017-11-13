@@ -7,6 +7,7 @@ import qualified Data.Char as C
 import Data.Readable (Readable(fromText))
 import qualified Data.Text as T
 import Data.Typeable
+import Frames.ColumnTypeable (Parseable)
 import qualified Data.Vector as V
 import Frames.InCore (VectorFor)
 import Frames
@@ -28,5 +29,7 @@ instance Readable ZipT where
                            then return $ ZipUS a b c d e
                            else return $ ZipWorld v w x y z
     | otherwise = mzero
+
+instance Parseable ZipT where
 
 type MyColumns = ZipT ': CommonColumns

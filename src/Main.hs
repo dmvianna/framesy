@@ -86,7 +86,15 @@ tableTypes' rowGen { rowTypeName = "U2"
   "../data/ml-100k/u.user"
 
 movieStream2 :: Producer U2 IO ()
-movieStream2 = readTableOpt u2Parser "data/ml-100k/u.user"
+movieStream2 = readTableOpt u2Parser "../data/ml-100k/u.user"
+
+neOccupations
+  :: (U2zipCode ∈ rs, U2occupation ∈ rs, Monad m)
+  => Pipe (Record rs) Text m r
+neOccupations = P.filter (isNewEngland . view u2zipCode)
+                >-> P.map (view u2occupation)
+  where isNewEngland (ZipUS 0 _ _ _ _) = True
+        isNewEngland _ = False
 
 main :: IO ()
 main = do
