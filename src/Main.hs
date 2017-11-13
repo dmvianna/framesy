@@ -16,15 +16,17 @@ import qualified Control.Foldl as L
 import qualified Data.Foldable as F
 import Data.Proxy (Proxy(..))
 
-import Pipes (Producer, Pipe)
+import Pipes (Producer, Pipe, runEffect, (>->))
 import qualified Pipes.Prelude as P
+import Lens.Micro ((%~))
 import Lens.Micro.Extras (view)
-import Data.Vinyl.Lens (rcast)
+import Data.Vinyl.Lens -- ∈ comes from here
 
 import Frames.Rec
 import Frames.Frame
 import Frames.Melt
-import Frames.Exploration (select, pr)
+import Frames.RecF
+import Frames.Exploration (select, pr, pipePreview)
 import Frames.InCore (inCoreAoS)
 import Frames.CSV ( tableTypes'
                   , separator
@@ -55,8 +57,11 @@ minMax = (,) <$> L.minimum <*> L.maximum
 miniUser :: User -> Record '[Occupation, Gender, Age]
 miniUser = rcast
 
-writers :: (ElemOf Occupation rs, Monad m) => Pipe (Record rs) (Record rs) m r
+writers :: (Occupation ∈ rs, Monad m) => Pipe (Record rs) (Record rs) m r
 writers = P.filter ((=="writer") . view occupation)
+
+intFieldDoubler :: Record '[UserId, Age] -> Record '[UserId, Age]
+intFieldDoubler = mapMono (* 2)
 
 main :: IO ()
 main = do
