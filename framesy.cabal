@@ -23,5 +23,7 @@ executable framesy
                      , ghc-mod
                      , microlens
                      , pipes
+                     , readable
                      , text
+                     , vector
                      , vinyl

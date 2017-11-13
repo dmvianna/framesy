@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -16,26 +17,37 @@ import qualified Control.Foldl as L
 import qualified Data.Foldable as F
 import Data.Proxy (Proxy(..))
 
-import Pipes (Producer, Pipe, runEffect, (>->))
+import Pipes (Producer, Pipe, runEffect, (>->), mzero)
 import qualified Pipes.Prelude as P
 import Lens.Micro ((%~))
 import Lens.Micro.Extras (view)
 import Data.Vinyl.Lens -- ∈ comes from here
 
+import Frames.ColumnUniverse
 import Frames.Rec
 import Frames.Frame
 import Frames.Melt
 import Frames.RecF
 import Frames.Exploration (select, pr, pipePreview)
-import Frames.InCore (inCoreAoS)
+import Frames.InCore
 import Frames.CSV ( tableTypes'
                   , separator
                   , rowGen
                   , rowTypeName
                   , readTableOpt
                   , columnNames
+                  , colQ
+                  , tablePrefix
+                  , columnUniverse
                   )
 import Data.Text (Text)
+import Data.Typeable
+import qualified Data.Text as T
+import qualified Data.Char as C
+import Data.Readable
+import qualified Data.Vector as V
+
+import TutorialZipCode
 
 -- tableTypes "Movies" "../data/ml-100k/u.user"
 
@@ -62,6 +74,19 @@ writers = P.filter ((=="writer") . view occupation)
 
 intFieldDoubler :: Record '[UserId, Age] -> Record '[UserId, Age]
 intFieldDoubler = mapMono (* 2)
+
+-- fun types
+
+tableTypes' rowGen { rowTypeName = "U2"
+                   , columnNames = [ "user id", "age", "gender"
+                                   , "occupation", "zip code" ]
+                   , separator = "|"
+                   , tablePrefix = "u2"
+                   , columnUniverse = $(colQ ''MyColumns) }
+  "../data/ml-100k/u.user"
+
+movieStream2 :: Producer U2 IO ()
+movieStream2 = readTableOpt u2Parser "data/ml-100k/u.user"
 
 main :: IO ()
 main = do
